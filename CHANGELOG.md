@@ -18,6 +18,42 @@
 - 服务启动项改手动、开机启动项管理、DISM 组件清理等需要改系统行为或重启的功能。
 - 诊断模块补齐到 PRD §4.1 的 15 类。
 
+## [1.1.0] - 2026-10-04
+
+### 新增
+
+- **图形界面（WPF，零第三方依赖）**：双击即用真正的窗口，不再需要看命令行。
+  - `Win11Optimizer.Gui.ps1`：GUI 入口——建窗口、绑按钮、渲染结果。
+  - `lib/Gui.Window.ps1`：主窗口 XAML（18 个控件、2 个 DataGrid：诊断结果 4 列 / 可清理缓存 5 列）。
+  - `lib/Gui.Core.ps1`：编排层——后台 runspace 执行扫描与清理，主线程用 `DispatcherFrame` 泵消息，窗口全程不假死；扫描过程文字经线程安全队列实时回传界面。
+  - `Start-Gui.cmd`：直接打开图形界面的启动器。
+  - 界面流程：本机信息 → 开始扫描 → 结果表格 → 勾选缓存 → 确认清理 → 一键还原。
+- **`Start-Optimizer.cmd` 改为选择菜单**：1 图形界面 / 2 只读诊断 / 3 清理缓存 / 4 一键还原。
+- **输出改道机制**：`lib/Common.ps1` 新增 `Set-OutputSink`。注册接收器时扫描输出送到界面；不注册时行为与原来完全一致（CLI 不受影响）。
+- **确认弹窗接缝** `Ask-GuiConfirmation`：把"是/否"确认抽成独立函数，便于自动化测试覆盖"勾选 → 确认 → 执行"链路。正式运行时仍是真实弹窗，**确认这道闸不会被跳过**。
+- **截图** `docs/screenshots/`：真实运行时的界面截图。
+
+### 修复
+
+- **报告目录被重复拼接**：GUI 里 `Get-GuiQuarantineSummary` / `Restore-GuiQuarantine` 把 `Join-Path $Root 'Reports'` 当基目录，指定 `-OutputDirectory` 时会去找不存在的 `仓库\Reports\Snapshot`，导致"隔离区：无"、还原按钮形同虚设。改为显式传 `-BaseDirectory`，并让 `Start-GuiScan` / `Start-GuiCleanup` 一并接收。
+- **隔离区摘要统计错误**：原来只数台账条目，已还原的记录也被算进去，界面会一直显示"还有 N 个文件可还原"。改为逐个确认文件**此刻仍在隔离区**才计数；还原后正确显示"隔离区：无"。
+- **点源入口脚本会永久阻塞**：`ShowDialog()` 是阻塞调用，点源一个末尾调用它的脚本会卡死，自动化测试根本没机会执行。新增 `-TestMode`，点源时只定义函数与绑定事件。
+- **`Sort-Object` 表达式用错变量**：写了外层 for 循环的 `$finding` 而不是管道变量 `$_`，界面整理结果时直接报错。
+- **跨 runspace 对象被 PSObject 包住**：`$_['Severity']` 抛 "Unable to index into an object of type PSObject"。新增 `Get-GuiField` 兼容 Hashtable 与 PSObject 两种形态。
+- **PowerShell 5.1 不支持泛型类型字面量**：`New-Object 'ConcurrentQueue[string]'` 静默返回 `$null`，导致后台输出队列建不起来。改用 `System.Collections.Queue` 的 `Synchronized` 包装。
+- **空 Queue 被枚举成 `$null`**：函数返回空集合时 PowerShell 的自动枚举会把它展开没，队列返回 `$null`。用 `return ,` 阻止枚举（与 `Get-CleanupItem` 同源的坑）。
+- **`DispatcherFrame` 依赖未加载**：`Gui.Core.ps1` 单独使用时 `WindowsBase` 未加载，显式 `Add-Type`。
+
+### 验证
+
+- 门禁：16 个文件 0 铁律违规、20 个文件 UTF-8 BOM 全过、36 个 Pester 用例全过。
+- 真实机器上：窗口成功创建并显示（截图存档）；**点击"开始扫描"按钮**得到 5 行诊断 + 4 项可清理缓存，界面显示"扫描完成：发现 3 项需要关注，4 类可清理缓存"；**点击"一键还原"按钮**把 4 个文件（10 MB）全部放回原位、隔离区清空；复选框列 `IsReadOnly=False`（用户可勾选）。
+
+### 已知限制
+
+- 真实鼠标点击复选框、以及确认弹窗的人工点击，未做自动化验证（`MessageBox` 是模态的，会阻塞消息泵，无人值守下既关不掉也点不了）——需要人工在桌面上确认一次。
+- GUI 以普通权限启动时，"服务详情 / 安全软件 / 系统还原"等项会如实标注"读不到"。
+
 ## [1.0.0] - 2026-10-04
 
 ### 新增

@@ -95,10 +95,18 @@ function Write-ScanLog {
     }
 
     if (-not $Silent) {
-        switch ($Level) {
-            'Warn' { Write-Host "  ! $Message" -ForegroundColor Yellow }
-            'Error' { Write-Host "  x $Message" -ForegroundColor Red }
-            default { Write-Host "  · $Message" -ForegroundColor DarkGray }
+        # 有接收器（图形界面）时走接收器，否则按原来的控制台输出
+        $sinkText = switch ($Level) {
+            'Warn' { "! $Message" }
+            'Error' { "x $Message" }
+            default { "· $Message" }
+        }
+        if (-not (Write-SinkMessage -Kind 'Log' -Text $sinkText)) {
+            switch ($Level) {
+                'Warn' { Write-Host "  ! $Message" -ForegroundColor Yellow }
+                'Error' { Write-Host "  x $Message" -ForegroundColor Red }
+                default { Write-Host "  · $Message" -ForegroundColor DarkGray }
+            }
         }
     }
 }
@@ -106,9 +114,54 @@ function Write-ScanLog {
 function Get-ScanWarningCount { return $script:ScanWarningCount }
 function Get-ScanSkippedCount { return $script:ScanSkippedCount }
 
+# ---------------------------------------------------------------------------
+# 输出改道（供图形界面使用）
+# ---------------------------------------------------------------------------
+# 命令行模式下这些函数直接 Write-Host；图形界面模式下没有控制台可看，
+# 所以提供一个"输出接收器"：GUI 注册一个脚本块，输出就会被送到窗口里。
+# 不注册接收器时行为与原来完全一致（CLI 不受影响）。
+$script:OutputSink = $null
+
+function Set-OutputSink {
+    <#
+    .SYNOPSIS
+        注册输出接收器。传 $null 可恢复默认的控制台输出。
+    .PARAMETER Sink
+        形如 { param($Kind, $Text) ... } 的脚本块，Kind 为 Headline/Item/Note/Log。
+    #>
+    [CmdletBinding()]
+    param([scriptblock]$Sink)
+    $script:OutputSink = $Sink
+}
+
+function Get-OutputSink { return $script:OutputSink }
+
+function Write-SinkMessage {
+    <#
+    .SYNOPSIS
+        把一条消息送给接收器（若已注册）。
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$Kind,
+        [Parameter(Mandatory)][string]$Text
+    )
+
+    if ($null -eq $script:OutputSink) { return $false }
+    try {
+        & $script:OutputSink $Kind $Text
+        return $true
+    } catch {
+        # 接收器坏了不能让扫描崩掉；退回控制台并留痕
+        Write-Host "   (界面输出失败，已退回控制台：$($_.Exception.Message))" -ForegroundColor Yellow
+        return $false
+    }
+}
+
 function Write-Headline {
     [CmdletBinding()]
     param([Parameter(Mandatory)][string]$Text)
+    if (Write-SinkMessage -Kind 'Headline' -Text $Text) { return }
     Write-Host ''
     Write-Host "── $Text" -ForegroundColor Cyan
 }
@@ -116,12 +169,14 @@ function Write-Headline {
 function Write-Item {
     [CmdletBinding()]
     param([Parameter(Mandatory)][string]$Text)
+    if (Write-SinkMessage -Kind 'Item' -Text $Text) { return }
     Write-Host "   $Text"
 }
 
 function Write-Note {
     [CmdletBinding()]
     param([Parameter(Mandatory)][string]$Text)
+    if (Write-SinkMessage -Kind 'Note' -Text $Text) { return }
     Write-Host "     $Text" -ForegroundColor DarkGray
 }
 
