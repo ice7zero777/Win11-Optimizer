@@ -1,0 +1,124 @@
+name: Bug 报告
+description: 报告工具本身的问题：漏报、误报、报错、输出不对
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢你花时间反馈问题。
+
+        **先说清楚当前项目状态**：仓库里真正落地的只有**铁律分析器**
+        （`analyzer\IronLaw\IronLaw.Checker.psm1` + Pester 测试 + `ci\Invoke-Analysis.ps1` 门禁）。
+        引擎层、插件层、主入口都还没有实现，所以"一键优化失败"这类问题目前还不会出现——
+        如果你遇到的是这类期望落空，请改用插件请求模板。
+
+        **安全类问题请走私有渠道**（见仓库 Security 标签页），不要在公开 Issue 里贴可利用细节。
+
+  - type: input
+    id: version_commit
+    attributes:
+      label: 你使用的版本 / 提交
+      description: 项目目前没有发布任何版本。请填你 clone 或下载时的提交短哈希（在仓库里执行 git log -1 --format=%h 即可看到）。
+      placeholder: 例如 a1b2c3d
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: 出问题的部分
+      options:
+        - 铁律检查器 analyzer\IronLaw\IronLaw.Checker.psm1
+        - Pester 测试 analyzer\tests\
+        - 本地门禁 ci\Invoke-Analysis.ps1
+        - 文档 / Issue 模板 / PR 模板
+        - 不确定
+    validations:
+      required: true
+
+  - type: dropdown
+    id: windows_version
+    attributes:
+      label: Windows 版本
+      options:
+        - Windows 11 25H2
+        - Windows 11 24H2
+        - Windows 11 23H2
+        - Windows 11 22H2
+        - Windows 11 21H2
+        - 其他或不确定
+    validations:
+      required: true
+
+  - type: input
+    id: powershell_version
+    attributes:
+      label: PowerShell 版本
+      description: 在 PowerShell 里执行 $PSVersionTable.PSVersion 并粘贴结果。
+      placeholder: 例如 5.1.26100.7705
+    validations:
+      required: true
+
+  - type: dropdown
+    id: run_as_admin
+    attributes:
+      label: 是否以管理员身份运行
+      options:
+        - 否（普通用户）
+        - 是（管理员）
+        - 不确定
+    validations:
+      required: true
+
+  - type: textarea
+    id: what_happened
+    attributes:
+      label: 实际发生了什么
+      description: 请写具体现象。例如"门禁在 BOM 阶段报失败，但文件确实是带 BOM 的"，比"跑不起来"有用得多。
+      placeholder: 我执行了 …，期望 …，结果出现 …
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro_steps
+    attributes:
+      label: 复现步骤
+      description: 越具体越好：执行的完整命令、涉及的完整路径、需要哪些文件。
+      placeholder: |
+        1. 在仓库根目录执行 .\ci\Invoke-Analysis.ps1
+        2. …
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 你期望的结果
+      description: 如果你认为"应该检出某个违规"或"不应该报这个违规"，请把那段代码也贴出来。
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 相关输出 / 日志
+      description: |
+        粘贴报错原文或检查器返回的违规记录（含 Law / Rule / File / Line / Column）。
+        **贴之前请脱敏**：把 C:\Users\你的用户名\... 换成 C:\Users\<用户名>\...，删掉机器名、SID 等不必要的信息。
+        只需贴复现必需的片段，不必贴整份日志。
+      render: text
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: 提交前确认
+      options:
+        - label: 我已经搜索过现有 Issue，没有找到重复的问题
+          required: true
+        - label: 我贴出的内容已做过脱敏处理，不含个人隐私路径、用户名、机器名、SID
+          required: true
+        - label: 我理解这是一个个人利用课余时间维护的小项目，回复可能不快
+          required: true

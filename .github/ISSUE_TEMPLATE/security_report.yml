@@ -1,0 +1,111 @@
+name: 安全报告（公开渠道）
+description: 安全问题的非敏感通报入口；可利用细节请优先走私有渠道
+title: "[安全] "
+labels: ["security"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 请先读这一段
+
+        **如果这个问题可以被利用**（例如：能绕过门禁检查、能让插件删掉不该删的文件、门禁脚本本身有越权风险），
+        请**不要**在这里写细节，改走私有报告渠道：
+
+        > 进入本仓库的 **Security** 标签页 → 点击 **Report a vulnerability**（GitHub 私有安全报告）。
+        > 内容只有维护者可见。
+
+        本模板适用于两种情况：
+
+        - 私有渠道打不开，需要先用一个不含细节的公开 Issue 联系维护者；
+        - 问题本身不敏感（例如检查器**误报**、文档承诺与实际行为不一致）。
+
+        ## 关于日志与命令
+
+        - 如果报告涉及**误删或不可逆操作**，请务必附上**执行日志**与**你当时运行的命令**——
+          没有这两样几乎无法定位问题。
+        - 但**不要附含个人隐私的路径信息**：请把 `C:\Users\你的用户名\...` 替换成 `C:\Users\<用户名>\...`，
+          并删掉机器名、SID、序列号、许可证、IP / MAC 等与复现无关的信息。
+        - 确实必须提供原始信息时，不要贴在这里，改走上面的私有渠道并在其中说明。
+
+        ## 当前项目状态（影响风险判断）
+
+        仓库目前只有**铁律分析器**（静态检查源码文本）+ Pester 测试 + CI 门禁，
+        引擎、插件、主入口尚未实现，也没有任何已发布的版本。
+        因此现阶段的安全问题主要是：检查器**漏报 / 误报**、**可被绕过的检查规则**、**门禁脚本自身的问题**。
+        详见 [SECURITY.md](../../SECURITY.md)。
+
+  - type: dropdown
+    id: issue_type
+    attributes:
+      label: 问题类型
+      options:
+        - 漏报（写了违规代码但没被检出）
+        - 误报（合规代码被错误标记）
+        - 检查规则可被绕过
+        - 门禁脚本 ci\Invoke-Analysis.ps1 自身的问题
+        - 文档中的安全承诺与实际行为不一致
+        - 其他（请在下方说明）
+    validations:
+      required: true
+
+  - type: dropdown
+    id: impact
+    attributes:
+      label: 你判断的最坏影响
+      description: 如果这个问题被触发，最坏情况会发生什么。
+      options:
+        - 只影响检查结果，无系统影响
+        - 可能导致误删用户数据
+        - 可能导致执行危险或不可逆的系统命令
+        - 可能泄露用户隐私信息
+        - 不确定
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 问题描述（不含利用细节）
+      description: 说清楚"哪里不对、为什么你认为这是安全问题"即可。可被直接利用的具体写法请留到私有渠道再说。
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs_and_commands
+    attributes:
+      label: 相关日志与命令（已脱敏）
+      description: |
+        涉及误删或不可逆操作时，这一栏很关键：请附执行日志与运行的命令。
+        贴之前请把用户名路径、机器名、SID 等换成占位符。
+      render: text
+    validations:
+      required: false
+
+  - type: input
+    id: private_contact
+    attributes:
+      label: 私有沟通方式（可选）
+      description: 如果希望维护者私下联系你，留下一个联系方式（邮箱等）。不想留就跳过。
+    validations:
+      required: false
+
+  - type: input
+    id: version_commit
+    attributes:
+      label: 你使用的提交
+      description: 项目尚未发布任何版本，请填 git log -1 --format=%h 的结果。
+      placeholder: 例如 a1b2c3d
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: 提交前确认
+      options:
+        - label: 我已确认这里没有包含可被直接利用的细节
+          required: true
+        - label: 我贴出的日志与命令已脱敏，不含个人隐私路径、用户名、机器名、SID
+          required: true
+        - label: 若维护者要求，我同意把详细复现信息转移到私有渠道提供
+          required: true

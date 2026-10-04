@@ -1,0 +1,21 @@
+# Issue 模板选择页的配置
+# 参考：https://docs.github.com/communities/using-templates-to-encourage-useful-issues-and-pull-requests/configuring-issue-templates-for-your-repository
+
+# 允许开空白 Issue。
+# 本项目的插件提案和 Bug 都建议走模板（能问清楚必要信息），但不想强制：
+# 有想法先随便聊两句也是可以的。
+blank_issues_enabled: true
+
+# ---------------------------------------------------------------------------
+# 联系链接（Discussions）
+#
+# ⚠️ 待确认：本仓库是否已经开启 GitHub Discussions？
+#    如果**没有开启**，这段配置请保持注释状态——激活一个指向不存在页面的链接会误导用户。
+#    开启 Discussions 后，把下面三行取消注释，并把 <OWNER>/<REPO> 换成真实值
+#    （把仓库主页地址栏里的 github.com/<OWNER>/<REPO> 直接抄过来即可）。
+#
+# contact_links:
+#   - name: 使用问题与想法讨论
+#     url: https://github.com/<OWNER>/<REPO>/discussions
+#     about: 不确定是不是 Bug、想问怎么用、或者有开放式的优化思路，欢迎到 Discussions 聊
+# ---------------------------------------------------------------------------

@@ -1,0 +1,134 @@
+name: 插件请求
+description: 提议一个新的优化项（插件）或改进现有想法
+title: "[插件请求] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        这个模板用来提议**一个新的优化项**。
+
+        请先确认两件事：
+
+        1. **项目当前状态**：引擎层与插件层**还没有实现**，现在提的插件不会立刻能用，
+           但可以用来对齐设计、决定首批插件的优先级。真正写代码前建议先在这里讨论。
+        2. **以下事情本项目永久不做**（PRD §1.4），提这些会被直接关闭：
+           - 删除或移动用户数据文件
+           - "注册表一键清理"类黑盒操作
+           - 自动修改网络配置（重置 Winsock / DNS 等）
+           - 自动卸载软件（只提示建议 + 官方卸载入口）
+           - 自动删除大于 100 MB 的文件
+           - 驱动与固件自动升级（只列出可用更新）
+           - 上传任何用户数据到网络
+           - 引用需要联网下载的外部工具（必须离线可用）
+
+        插件的设计规范见需求文档 §5（plugin.json Schema + 五函数契约 Scan / Plan / Apply / Rollback / Verify）。
+
+  - type: input
+    id: plugin_name
+    attributes:
+      label: 插件名称（建议写法）
+      description: 命名形如 类别.标识，例如 disk.shadercache、service.vendor-bloat。
+      placeholder: disk.shadercache
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: 所属类别
+      description: 对应 PRD §4.1 规划的 15 个诊断模块。
+      options:
+        - disk（磁盘与缓存）
+        - service（服务）
+        - startup（启动项）
+        - power（电源与性能）
+        - security（安全软件冲突）
+        - privacy（隐私与遥测）
+        - device（设备与驱动残留）
+        - network（网络，只诊断）
+        - environment（环境变量 / PATH）
+        - update（系统更新）
+        - 其他或不确定
+    validations:
+      required: true
+
+  - type: dropdown
+    id: risk_level
+    attributes:
+      label: 你判断的风险等级（PRD §6.1，0–4）
+      description: 0 完全可逆无需权限；1 可逆、影响小；2 需管理员、影响系统设置；3 高风险、需二次确认；4 不支持自动执行。
+      options:
+        - "0 —— 完全可逆，无需管理员（默认勾选）"
+        - "1 —— 可逆，影响小"
+        - "2 —— 需管理员，改动系统设置"
+        - "3 —— 高风险，需二次确认"
+        - "4 —— 不支持自动执行，只输出建议"
+        - 不确定
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: 它解决什么痛点
+      description: 用普通用户能听懂的话说清楚：电脑会出现什么现象？为什么用户自己找不到原因？
+      placeholder: 例如"某厂商服务会内存泄漏，长期占用 1.7 GB 内存，用户看进程名完全不知道这是什么"
+    validations:
+      required: true
+
+  - type: textarea
+    id: real_data
+    attributes:
+      label: 本机实测数据
+      description: |
+        这个项目要求"报告中每个问题都带本机实测数据"，不接受"可能存在"这类泛泛描述。
+        请给出你机器上的真实观测值（内存占用、磁盘占用、服务名、命令输出等）。
+        如果你只在别人的报告里看到过、自己没实测，请**如实说明**"未实测"。
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: what_it_does
+    attributes:
+      label: 它具体会做什么改动
+      description: 逐条列出：改哪些路径、哪些注册表项、哪些服务或计划任务。请用白名单式写法（明确列出目标），不要用"清理所有没用的"这类描述。
+    validations:
+      required: true
+
+  - type: textarea
+    id: rollback
+    attributes:
+      label: 怎么还原
+      description: 每一项改动都必须有还原路径（PRD §2 P3）。请说明改动前的状态如何记录、还原时执行什么操作。
+    validations:
+      required: true
+
+  - type: dropdown
+    id: reboot_needed
+    attributes:
+      label: 是否需要重启才生效
+      options:
+        - 不需要
+        - 可能（请说明）
+        - 需要
+        - 不清楚
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: 提交前确认
+      options:
+        - label: 这个提议不删除、不移动任何用户数据文件（PRD §2 P1）
+          required: true
+        - label: 这个提议完全离线可用，不引用任何需要联网下载的外部工具
+          required: true
+        - label: 这个提议不属于上面列出的"永久不做"清单
+          required: true
+        - label: 目标路径可以用明确的白名单列出，不需要"排除法"
+          required: true
+        - label: 我如实标注了哪些数据是实测的、哪些还没有验证
+          required: true

@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    name: Iron Law gate (PowerShell 5.1)
+    runs-on: windows-2022
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Report PowerShell version
+        shell: powershell
+        run: $PSVersionTable.PSVersion.ToString()
+
+      - name: Iron Law scan and BOM self-check
+        shell: powershell
+        run: .\ci\Invoke-Analysis.ps1 -SkipTests
+
+      - name: Install Pester 5.x
+        shell: powershell
+        run: |
+          Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+          Install-Module Pester -MinimumVersion 5.0 -Scope CurrentUser -Force -SkipPublisherCheck
+
+      - name: Pester test suite
+        shell: powershell
+        run: .\ci\Invoke-Analysis.ps1
