@@ -6,6 +6,11 @@ cd /d "%~dp0"
 set "PS=%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe"
 if not exist "%PS%" set "PS=powershell.exe"
 
+rem 支持 /gui 直接进图形界面，跳过菜单（方便固定快捷方式，也便于自动化验证）
+if /i "%~1"=="/gui" goto gui
+if /i "%~1"=="-gui" goto gui
+if /i "%~1"=="gui" goto gui
+
 :menu
 cls
 echo.
