@@ -14,6 +14,14 @@
 
 ### 新增
 
+- **只读诊断工具（首个可用版本）**：双击 `Start-Optimizer.cmd` 即可扫描并生成中文报告，全程不修改系统。
+  - 主入口 `Win11Optimizer.ps1`：环境探测、自动提权（可用 `-NoElevate` 跳过）、扫描调度、控制台报告、Markdown 报告落盘、日志记录。
+  - `lib/Common.ps1`：日志与输出、目录体积测量（带超时与错误计数）、系统信息探测、Finding 契约。
+  - `lib/Scan.Disk.ps1`：分区剩余空间（含 15% 降速线，<8% 升为严重）、可清理缓存体积（只测量不删除）、下载目录大文件提示。
+  - `lib/Scan.System.ps1`：内存占用与吃内存最多的进程（同名进程合并统计）、厂商常驻服务与厂商不匹配检测、开机启动项、杀毒软件冲突、系统还原状态、待重启状态（多来源交叉验证）。
+  - `lib/Scan.Power.ps1`：当前电源方案是否被改成第三方、CPU 是否被限频（PROCTHROTTLEMAX）、可持续性计划任务是否已启用。
+  - `Start-Optimizer.cmd`：纯 ASCII 文件名的启动器（铁律 L5），含编码设置与退出码处理。
+  - 实测：在本机（Alienware m15 R3 / Win11 26200）完整扫描约 6 秒，正确报出"2 套安全软件同时实时防护"与"缓存占用 4.65 GB"。
 - **铁律检查器** `analyzer/IronLaw/IronLaw.Checker.psm1`：基于 PowerShell AST 的静态检查，逐条落实 PRD §12 的 L1–L5。
   - L1 `AvoidForbiddenCommand` / `AvoidForbiddenInlineCommand` / `AvoidForbiddenPath`
   - L2 `AvoidSilentlyContinueErrorAction` / `AvoidEmptyCatchBlock`
@@ -36,14 +44,14 @@
 
 以下内容是 PRD 里的设计，不是已完成的功能，写在这里是为了让"什么还没做"一目了然：
 
-- **引擎层** `engine/`：`DiagnosticRunner`、`PluginLoader`、`SelectionModel`、`ExecutionEngine`、`SnapshotManager`、`ReportRenderer`、`Logger`、`Preflight`、`Contracts` —— 未实现。
-- **插件层** `plugins/`：PRD §4.1 规划的 15 个优化模块（disk / service / startup / power / security / privacy / device / network / environment / update）—— 未实现，目前只有目录结构设计。
-- **主入口**：`Win11Optimizer.ps1`（CLI）与 `Start-Optimizer.cmd`（纯 ASCII 名自提权启动器）—— 未实现。
-- **诊断与优化能力本身**：全量只读扫描、勾选列表、快照与一键还原、报告渲染 —— 均未实现。
-- **GUI 壳（Phase 2）**—— 未开始。
+- **自动清理插件** `plugins/`：PRD §4.1 规划的 15 个优化模块（disk / service / startup / power / security / privacy / device / network / environment / update）—— 目前只做只读诊断，**任何清理动作都未实现**，只报告不执行。
+- **引擎层** `engine/`：`PluginLoader`、`SelectionModel`、`ExecutionEngine`、`SnapshotManager` —— 未实现（只读诊断用的 `lib/` 是简化版，不是 PRD 里的完整引擎）。
+- **快照与一键还原**：`Restore-All.ps1` 生成、`-WhatIf` 演练、`-Only` 单项还原 —— 未实现。
+- **勾选列表与执行流程**：扫描 → 勾选 → 逐项执行 → 生成还原脚本 —— 未实现。
+- **GUI 壳（Phase 2）** —— 未开始。
 
-> 换句话说：现在克隆本仓库，你拿到的是一个**能跑的代码检查器**、一套设计文档，还不是一个能优化电脑的工具。
-> 主入口落地并跑通「扫描 → 勾选 → 执行 → 还原」全流程之后，才会出现第一个带版本号的 Release。
+> 换句话说：现在下载本仓库，你拿到的是一个**能跑只读诊断并出报告的工具**（外加铁律检查器与 CI）。
+> 它不会替你清理任何东西。等快照与一键还原做完，才会加上"执行"能力。
 
 ---
 
