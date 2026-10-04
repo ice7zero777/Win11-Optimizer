@@ -5,7 +5,8 @@
 
 .DESCRIPTION
     绝对只读。只调用 powercfg 的查询开关（/getactivescheme、/query）与 Get-ScheduledTask，
-    不使用 powercfg /setactive、/change 等任何会修改电源设置的参数，也不修改任何计划任务。
+    不传入任何用于写入或切换设置的开关，也不修改任何计划任务。
+    这是本模块的硬边界：即使发现电源方案被第三方软件改过，也只报告，不代用户改回去。
 
     检测项：
       1. 当前电源方案是否为 Windows 原生方案（平衡 / 高性能 / 节能）。
