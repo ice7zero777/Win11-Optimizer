@@ -91,7 +91,7 @@
 面向贡献者：
 
 ```powershell
-git clone https://github.com/<你的仓库地址>.git
+git clone https://github.com/ice7zero777/Win11-Optimizer.git
 cd Win11-Optimizer
 
 # 运行测试套件需要 Pester 5.x
