@@ -449,7 +449,18 @@ function Format-GuiFindings {
     #   1) Sort-Object 的表达式里只能用 $_，不能用外层 for 循环的变量名；
     #   2) 跨 runspace 回传后数组元素可能被 PSObject 包住，$_['Severity'] 这种索引会抛
     #      "Unable to index into an object of type PSObject"，所以统一用 Get-GuiField 取值。
-    $ordered = @($Findings | Sort-Object -Property @{ Expression = { Get-SeverityRank -Severity (Get-GuiField -Item $_ -Name 'Severity') } })
+    #   3) 同级项之间 Sort-Object 顺序不确定（不稳定排序），会让界面每次刷新顺序乱跳。
+    #      因此补一个固定顺序的次级维度：保留原始数组顺序作为稳定性保证。
+    $index = 0
+    $decorated = foreach ($finding in $Findings) {
+        [pscustomobject]@{
+            Rank     = (Get-SeverityRank -Severity (Get-GuiField -Item $finding -Name 'Severity'))
+            Order    = $index
+            Original = $finding
+        }
+        $index++
+    }
+    $ordered = @($decorated | Sort-Object -Property Rank, Order | ForEach-Object { $_.Original })
     foreach ($finding in $ordered) {
         [void]$rows.Add([pscustomobject]@{
                 Severity = (Get-SeverityLabel -Severity (Get-GuiField -Item $finding -Name 'Severity'))
@@ -458,7 +469,7 @@ function Format-GuiFindings {
                 Advice   = (Get-GuiField -Item $finding -Name 'Advice')
             })
     }
-    return , $rows.ToArray()
+    return $rows.ToArray()
 }
 
 function Format-GuiCleanupItems {
@@ -500,5 +511,5 @@ function Format-GuiCleanupItems {
                 Enabled   = $enabled
             })
     }
-    return , $rows.ToArray()
+    return $rows.ToArray()
 }
