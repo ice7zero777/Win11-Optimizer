@@ -1,5 +1,9 @@
 # Win11-Optimizer
 
+[![CI](https://github.com/ice7zero777/Win11-Optimizer/actions/workflows/ci.yml/badge.svg)](https://github.com/ice7zero777/Win11-Optimizer/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Platform: Windows 11](https://img.shields.io/badge/Platform-Windows%2011-0078D4.svg)](#需求)
+
 用纯 PowerShell 写的 Windows 11 诊断与优化工具，面向用了几年没怎么优化过、也不想为此学运维的普通用户。
 
 - **轻量**：不用安装，不需要 Python 或任何运行库，不常驻后台，不联网。
