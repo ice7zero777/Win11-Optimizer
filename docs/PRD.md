@@ -139,7 +139,10 @@ foreach ($p in $allowedCachePaths) {
   - `Why`：为什么这会让你卡/出问题（白话，带数据）
   - `Risk`：最坏情况是什么
 - 报告中每个问题必须带**本机实测数据**（不是"可能存在"），例如：
-  > ✅ `ServiceShell.exe 正在占用 1782 MB 内存 —— 这是戴尔官方已确认的内存泄漏缺陷`
+  > ✅ `ServiceShell.exe 正在占用 1797 MB 内存 —— 这是戴尔官方已确认的内存泄漏缺陷`
+  >
+  > （说明：该进程占用会随时间波动，实战中实测到 1782 MB 与 1797 MB 两个读数，
+  > 本文与 README 统一采用性能对比表所用的 **1797 MB**。）
 
 ### P5 —— 了解本机实际情况
 
@@ -270,7 +273,7 @@ Win11-Optimizer/
 | `env` | 运行环境 | 是否管理员、Win11 版本、PowerShell 版本、可用磁盘、系统还原是否可用 | "检测到你不是管理员权限，有 12 项优化无法执行" |
 | `disk` | 磁盘空间 | 各分区剩余空间与百分比、`<15%` 降速阈值告警、白名单缓存目录体积 | "C 盘只剩 13.5% 空间，Windows 在低于 15% 时会明显变慢" |
 | `component` | 系统组件 | WinSxS 体积、DISM 组件健康状态、更新缓存、WinRE、休眠文件 | "Windows 更新缓存占了 233 MB，可以安全清理" |
-| `service` | 服务 | 第三方常驻服务清单、厂商服务识别（Dell/Lenovo/HP/ASUS…）、厂商不匹配检测、**高内存服务进程识别** | "发现 Dell 的 ServiceShell.exe 占用 1782 MB —— 戴尔官方确认的内存泄漏缺陷" |
+| `service` | 服务 | 第三方常驻服务清单、厂商服务识别（Dell/Lenovo/HP/ASUS…）、厂商不匹配检测、**高内存服务进程识别** | "发现 Dell 的 ServiceShell.exe 占用 1797 MB —— 戴尔官方确认的内存泄漏缺陷" |
 | `startup` | 启动项 | 注册表 Run 键、启动文件夹、计划任务、StartupApproved 状态 | "Wallpaper Engine 开机自启，会吃掉 GPU 和内存" |
 | `task` | 计划任务 | 非微软任务识别、遥测任务、广告推广任务（如 SoftLanding）、更新任务 | "发现 2 个广告推广任务，是 Windows 家庭版预装的" |
 | `power` | 电源 | 当前电源方案、CPU 上限（PROCTHROTTLEMAX）、睡眠/合盖设置、**第三方限频方案识别** | "你的电源方案被第三方软件改成了'健康'方案，CPU 被限制在 60%" |
@@ -331,11 +334,11 @@ LSP 分析：
     Id          = 'service.shell-memory-leak'      # 全局唯一，格式 <module>.<slug>
     Module      = 'service'
     Severity    = 'High'                            # Critical | High | Medium | Low | Info
-    Title       = 'ServiceShell 内存泄漏（1782 MB）'
-    Summary     = '戴尔的服务进程占用了 1782 MB 内存，这是官方已确认的缺陷，会导致严重的内存分页和整机卡顿。'
+    Title       = 'ServiceShell 内存泄漏（1797 MB）'
+    Summary     = '戴尔的服务进程占用了 1797 MB 内存，这是官方已确认的缺陷，会导致严重的内存分页和整机卡顿。'
     Evidence    = @{                                # 必须带实测数据
         ProcessName = 'ServiceShell'
-        MemoryMB    = 1782
+        MemoryMB    = 1797
         ServiceName = 'DellClientManagementService'
         Vendor      = 'Dell'
     }
